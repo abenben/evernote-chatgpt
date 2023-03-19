@@ -10,6 +10,11 @@ def enml_to_text(enml_content):
     # XHTMLからプレーンテキストを取得するために、XHTMLタグを削除する
     enml_content = re.sub(r'<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">', '', enml_content)
     root = etree.fromstring(enml_content)
+
+    # 段落の終わりに改行を追加
+    for elem in root.xpath("//div"):
+        elem.tail = "\n" + (elem.tail or "")
+
     text = etree.tostring(root, method="text", encoding="utf-8").decode("utf-8").strip()
     return text
 
@@ -39,7 +44,8 @@ for notebook in notebook_list:
 
         # NoteFilterを作成し、指定したノートブックのGUIDを設定します。
         filter = NoteFilter()
-        filter.notebookGuid = notebook.guid
+        filter.notebookGuid = notebook.guid  # ノートブックの GUID を指定
+        filter.ascending = False  # ノートを降順（最新順）で取得する
 
         # 取得するノートのメタデータに含めるフィールドを設定します。
         spec = NotesMetadataResultSpec()
@@ -59,8 +65,6 @@ for notebook in notebook_list:
 
         # メタデータリストからノートをループして、詳細を表示します。
         for note_meta_data in notes_metadata_list.notes:
-            print(f'  ノートのタイトル: {note_meta_data.title}')
-
             # ノートのGUIDを使って、ノートの詳細を取得します。
             note = store.getNote(
                 note_meta_data.guid,
@@ -69,10 +73,14 @@ for notebook in notebook_list:
                 True,
                 True
             )
-            print(f'    タイトル: {note.title}')
-            print(f'    作成日時: {datetime.fromtimestamp(note.created / 1000, timezone(timedelta(hours=9)))}')
+            print("#" * 60)
+            print("#" * 60)
+            print("#" * 60)
+            print(f'1.タイトル: {note.title}')
+            print(f'2.作成日時: {datetime.fromtimestamp(note.created / 1000, timezone(timedelta(hours=9)))}')
             enml_content = note.content
             plain_text_content = enml_to_text(enml_content)
-            print(f'    内容(プレーンテキスト): {plain_text_content[0:64]}')
+            print('3.内容(プレーンテキスト)')
+            print(f'{plain_text_content}')
 
         break
