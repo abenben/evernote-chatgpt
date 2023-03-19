@@ -48,7 +48,7 @@ notebook_list = store.listNotebooks()
 target_notebook_name = "03.フライヤー"
 
 # 取得するノートの最大数を指定します。
-max_notes_to_fetch = 3
+max_notes_to_fetch = 1
 
 # ノートブックリストをループして、目的のノートブックを見つけます。
 for notebook in notebook_list:
