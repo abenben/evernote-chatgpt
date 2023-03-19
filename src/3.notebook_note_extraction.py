@@ -14,7 +14,7 @@ def enml_to_text(enml_content):
     start_extracting = False
 
     # 要約の部分だけプレーンテキストとして抽出する
-    for elem in root.iter("h1", "h2", "h3", "div"):
+    for elem in root.iter("h1", "div"):
         if elem.tag == "h1" and elem.text == "要約":
             start_extracting = True
             continue
