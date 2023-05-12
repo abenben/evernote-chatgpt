@@ -137,11 +137,10 @@ CRISPRゲノム編集技術は、誕生から10年ほどしか経っていない
 なにが適切であるのか、科学者や医師だけでなく、様々な立場の人々が議論に参加する必要がある。
 CRISPRが向かう先は、われわれ全員に委ねられているのだ。
 """
-# テキストを分割するためのパラメータ
-chunk_size = 2048  # 一度に処理できる最大の文字数
-overlap_size = 512  # チャンク間で重複する文字数
 
-# 分割されたテキストの各チャンクにフレーズを追加する
+chunk_size = 2048
+overlap_size = 512
+
 chunks = []
 for idx, start_idx in enumerate(range(0, len(message), chunk_size-overlap_size)):
     chunk = message[start_idx:start_idx+chunk_size]
@@ -151,14 +150,8 @@ for idx, start_idx in enumerate(range(0, len(message), chunk_size-overlap_size))
         chunk = "こちらは追加の情報です。まとめたいのでいったん覚えてください。：\n\n" + chunk
     chunks.append(chunk)
 
-# 各チャンクを個別に要約する
 summaries = []
 for chunk in chunks:
-    print("+"*60)
-    print("+ 入力")
-    print(chunk)
-    print("+"*60)
-
     response = openai.Completion.create(
         engine="text-davinci-003",
         prompt=chunk,
@@ -168,21 +161,17 @@ for chunk in chunks:
         frequency_penalty=0,
         presence_penalty=0
     )
-    print("*"*60)
-    print("* 結果")
-    print("*"*60)
-    print(response.choices[0].text.strip())
+    summary = response.choices[0].text.strip()
+    summaries.append(summary)
 
-# すべてのチャンクの要約を組み合わせて、最終的な要約を生成する
-final_summary = "日本語の要約として、これまでで伝えた情報を10個で要約して下さい。"
-print("+" * 60)
-print("+ 入力")
-print(final_summary)
-print("+" * 60)
+# Create input from summaries list
+summary_input = "\n\n".join(summaries)
+
+final_summary_prompt = f"これまでの情報をまとめた結果は以下のとおりです。\n\n{summary_input}\n\n日本語の要約として、これまでで伝えた情報を10個で要約して下さい。"
 
 final_response = openai.Completion.create(
     engine="text-davinci-003",
-    prompt=final_summary,
+    prompt=final_summary_prompt,
     temperature=0.5,
     max_tokens=256,
     top_p=1,
@@ -191,30 +180,4 @@ final_response = openai.Completion.create(
 )
 final_summary = final_response.choices[0].text.strip()
 
-print("#" * 60)
-print("#" * 60)
-print("#" * 60)
-print(final_summary)
-
-# すべてのチャンクの要約を組み合わせて、最終的な要約を生成する
-final_summary = "続きもお願いします。"
-print("+" * 60)
-print("+ 入力")
-print(final_summary)
-print("+" * 60)
-
-final_response = openai.Completion.create(
-    engine="text-davinci-003",
-    prompt=final_summary,
-    temperature=0.5,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
-)
-final_summary = final_response.choices[0].text.strip()
-
-print("#" * 60)
-print("#" * 60)
-print("#" * 60)
 print(final_summary)

@@ -4,6 +4,7 @@ from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 import os
 from lxml import etree
 import re
+from bs4 import BeautifulSoup
 
 
 def enml_to_text(enml_content):
@@ -25,6 +26,21 @@ client = EvernoteClient(
     sandbox=False
 )
 
+
+def extract_urls_and_tabs(enml_content):
+    soup = BeautifulSoup(enml_content, 'html.parser')
+
+    urls = []
+    for link in soup.find_all('a'):
+        urls.append(link.get('href'))
+
+    tabs = []
+    for tab in soup.find_all('tab'):
+        tabs.append(tab.text)
+
+    return urls, tabs
+
+
 # NoteStoreを取得します。
 store = client.get_note_store()
 
@@ -35,7 +51,7 @@ notebook_list = store.listNotebooks()
 target_notebook_name = "03.フライヤー"
 
 # 取得するノートの最大数を指定します。
-max_notes_to_fetch = 3
+max_notes_to_fetch = 2000
 
 # ノートブックリストをループして、目的のノートブックを見つけます。
 for notebook in notebook_list:
@@ -73,14 +89,19 @@ for notebook in notebook_list:
                 True,
                 True
             )
-            print("#" * 60)
-            print("#" * 60)
-            print("#" * 60)
             print(f'1.タイトル: {note.title}')
             print(f'2.作成日時: {datetime.fromtimestamp(note.created / 1000, timezone(timedelta(hours=9)))}')
             enml_content = note.content
-            plain_text_content = enml_to_text(enml_content)
-            print('3.内容(プレーンテキスト)')
-            print(f'{plain_text_content}')
+
+            urls, tabs = extract_urls_and_tabs(enml_content)
+            print(f'3.URLs:{len(urls)}')
+            for url in urls:
+                print(url)
+            print(f'4.Tabs: {len(tabs)}')
+            for tab in tabs:
+                print(tab)
+            # plain_text_content = enml_to_text(enml_content)
+            # print('3.内容(プレーンテキスト)')
+            # print(f'{plain_text_content}')
 
         break
